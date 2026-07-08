@@ -52,6 +52,8 @@ Yep. If the list of phrases contains words that sound like commands, the model c
 
 `sense` runs at a temperature of 0 for rating associations. The whole point is to get the model to tap into its knowledge and spit out its best estimate.
 
+## Scoring
+
 > How many phrases are sent to the LLM per rating request?
 
 Each request includes two phrases: the benchmark phrase plus another one.
