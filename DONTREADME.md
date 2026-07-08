@@ -99,3 +99,37 @@ The first column has the target phrase, and the second one has the normalized sc
 No.
 
 A JSON output file is a JSON object. The keys hold the target phrases, while the values hold the maps the API returns.
+
+## Resumability
+
+> Can `sense` keep going if it gets interrupted?
+
+Yes.
+
+If the `sense` process quits before making the output files, running the command again will pick up where it left off.
+
+> Does `sense` write an incomplete JSON file to the current working directory?
+
+No.
+
+When it's gathering data, `sense` puts the growing JSON file into `~/.local/state/sense/`. `sense` only drops completed files into the current working directory when the JSON file is complete.
+
+## Safety
+
+> Will `sense` overwrite an existing TSV output file?
+
+No.
+
+If the output TSV file is found in your current directory, the tool shuts down so you don't duplicate work.
+
+> Does a crash during a write operation corrupt the accumulated results?
+
+No.
+
+The tool swaps in a new JSON file atomically.
+
+> Does running multiple instances of `sense` cause duplicate batch requests?
+
+No.
+
+`sense` grabs a lock on the state directory. The second instance run will fail to acquire the lock.
