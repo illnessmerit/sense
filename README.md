@@ -8,6 +8,8 @@
 
 ## Usage
 
+> How do I run `sense`?
+
 1. Open the terminal.
 
 1. Make a `.yaml` config file named `fat.yaml` in the current directory.
