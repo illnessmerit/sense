@@ -10,7 +10,7 @@
 
 > How do I run `sense`?
 
-1. Open the terminal.
+1. Open a terminal.
 
 1. Make a `.yaml` config file like this in the current directory.
 
