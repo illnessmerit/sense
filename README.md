@@ -12,7 +12,7 @@
 
 1. Open the terminal.
 
-1. Make a `.yaml` config file named `fat.yaml` in the current directory.
+1. Make a `.yaml` config file like this in the current directory.
 
    ```yaml
    benchmark: "on one's plate"
