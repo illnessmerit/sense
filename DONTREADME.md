@@ -58,7 +58,7 @@ The target is to keep monthly usage under $100. I set this limit because most pr
 
 > What model does `sense` use?
 
-`sense` uses `gemini-3.5-flash` for these reasons:
+`sense` uses [`gemini-3.5-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash) for these reasons:
 
 - On Text Arena, `gemini-3.5-flash` tops the list as the highest-ranking model that's under $10 per million output tokens without batching.
 
@@ -70,7 +70,7 @@ The target is to keep monthly usage under $100. I set this limit because most pr
 
 - Setting the thinking level to `minimal` effectively turns off thinking for this task.
 
-- `gemini-3.5-flash` supports structured outputs.
+- `gemini-3.5-flash` [supports structured outputs](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash#:~:text=Supported-,Structured%20outputs,-Supported).
 
 > Does `sense` use a system prompt?
 
