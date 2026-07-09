@@ -54,7 +54,7 @@ Both can act as pivots:
 
 The target is to keep monthly usage under $100. I set this limit because most productivity tools cost less than that.
 
-## Prompting
+## Scoring
 
 > Does `sense` use a system prompt?
 
@@ -65,8 +65,6 @@ If the list of phrases contains words that sound like commands, the model could 
 > What's the temperature `sense` uses for rating associations?
 
 `sense` runs at a temperature of 0 for rating associations. The whole point is to get the model to tap into its knowledge and spit out its best estimate.
-
-## Scoring
 
 > How many phrases are sent to the LLM per rating request?
 
