@@ -166,6 +166,12 @@ No.
 
 A JSON output file is a JSON object. The keys hold the target phrases, while the values hold the maps the API returns.
 
+Using a JSON object instead of an array gives you these perks:
+
+- The keys in the accumulating JSON file serve as the single source of truth for completed work.
+
+- Merging batch results into a map by key is idempotent. Merging the same batch data more than once will replace the current keys with identical score data rather than creating duplicate entries.
+
 > Does `sense` split single words and multi-word phrases into separate output files?
 
 No.
