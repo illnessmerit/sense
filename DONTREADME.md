@@ -32,6 +32,22 @@ Evaluating every English word in Wiktionary would cost too much.
 
 - About half of Americans aged 10 and up are thought to know the phrase's most common meaning.
 
+> Does `sense` process a Wiktionary dump?
+
+No.
+
+`sense` pulls the `wiktionary.tsv` file from the `prevalence-data` repo.
+
+> Does `sense` check both single words and multi-word phrases for double meanings?
+
+Yes.
+
+Both can act as pivots:
+
+- "Obese children put a lot of strain on the NHS, not to mention seesaws and swings."
+
+- "She recently went to her GP just for the annual checkup. She was classified by her own GP as being morbidly obese. Who came up with that term? That's so unnecessarily harsh, morbidly obese as if she doesn't have enough on her plate."
+
 ### Budget
 
 > What is the target monthly budget?
@@ -109,6 +125,14 @@ The first column has the target phrase, and the second one has the normalized sc
 No.
 
 A JSON output file is a JSON object. The keys hold the target phrases, while the values hold the maps the API returns.
+
+> Does `sense` split single words and multi-word phrases into separate output files?
+
+No.
+
+- You'll probably want to search both single words and multi-word phrases at once.
+
+- If you ever need to split single words from multi-word phrases, it's easy to filter the data in a spreadsheet by checking for spaces in the entries.
 
 ## Resumability
 
