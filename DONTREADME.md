@@ -6,7 +6,9 @@
 
 > Does `sense` use human feedback to rate associations?
 
-No. Getting human feedback takes too much time.
+No.
+
+Getting human feedback takes too much time.
 
 Instead, `sense` leans on a large language model (LLM) to rate associations.
 
@@ -14,11 +16,15 @@ Instead, `sense` leans on a large language model (LLM) to rate associations.
 
 > Does `sense` evaluate every English word?
 
-No. `sense` pulls its vocabulary from English Wiktionary entries.
+No.
+
+`sense` pulls its vocabulary from English Wiktionary entries.
 
 > Does `sense` evaluate every English word in Wiktionary?
 
-No. Evaluating every English word in Wiktionary would cost too much.
+No.
+
+Evaluating every English word in Wiktionary would cost too much.
 
 `sense` narrows its scope based on the following criteria:
 
@@ -36,7 +42,9 @@ The target is to keep monthly usage under $100. I set this limit because most pr
 
 > Does `sense` use a system prompt?
 
-Yep. If the list of phrases contains words that sound like commands, the model could treat them as instructions rather than just stuff to score. So the system prompt makes it crystal clear what's data and what's instruction.
+Yep.
+
+If the list of phrases contains words that sound like commands, the model could treat them as instructions rather than just stuff to score. So the system prompt makes it crystal clear what's data and what's instruction.
 
 > What's the temperature `sense` uses for rating associations?
 
@@ -50,7 +58,9 @@ Each request includes two phrases: the benchmark phrase plus another one.
 
 > Are the association scores normalized across multiple requests?
 
-Yes. Normalization makes the scores more consistent between different requests.
+Yes.
+
+Normalization makes the scores more consistent between different requests.
 
 > What's the normalization formula?
 
