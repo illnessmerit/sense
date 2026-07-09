@@ -56,6 +56,22 @@ The target is to keep monthly usage under $100. I set this limit because most pr
 
 ## Scoring
 
+> What model does `sense` use?
+
+`sense` uses `gemini-3.5-flash` for these reasons:
+
+- On Text Arena, `gemini-3.5-flash` tops the list as the highest-ranking model that's under $10 per million output tokens without batching.
+
+- `gemini-3.5-flash` is a production model.
+
+- Less capable models tend to change their scores dramatically if the order of phrases to evaluate gets swapped. `gemini-3.5-flash` seems pretty resistant to this order dependency. Even though `sense` keeps the benchmark phrase in a fixed spot, the model's native resistance boosts confidence in the scores.
+
+- `gemini-3.5-flash` allows running at a temperature of 0.
+
+- Setting the thinking level to `minimal` effectively turns off thinking for this task.
+
+- `gemini-3.5-flash` supports structured outputs.
+
 > Does `sense` use a system prompt?
 
 Yep.
@@ -65,6 +81,24 @@ If the list of phrases contains words that sound like commands, the model could 
 > What's the temperature `sense` uses for rating associations?
 
 `sense` runs at a temperature of 0 for rating associations. The whole point is to get the model to tap into its knowledge and spit out its best estimate.
+
+> What thinking level does `sense` use?
+
+`sense` uses `minimal` thinking.
+
+Setting the thinking level to `minimal` effectively turns off thinking for this task.
+
+Allowing thinking has these downsides:
+
+- You could be charged for thinking tokens.
+
+- Setting `temperature` to 0 might mess up the model's thinking, since Gemini 3.x's reasoning capabilities are optimized for the default settings.
+
+> Does `sense` use structured outputs?
+
+Yes.
+
+Using structured outputs makes sure the API response includes the scoring fields `sense` needs.
 
 > How many phrases are sent to the LLM per rating request?
 
