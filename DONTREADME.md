@@ -120,7 +120,7 @@ Tier 2 boosts the token limit a lot. But Tier 2 requires [a $100 payment and
 
 No.
 
-`sense` processes batches sequentially. That way, I dodge the headache of tracking a bunch of active batch IDs.
+`sense` processes batches sequentially. That way, I dodge the headache of tracking a bunch of active batch names.
 
 
 > Are the association scores normalized across multiple requests?
