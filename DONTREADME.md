@@ -104,7 +104,17 @@ Using structured outputs makes sure the API response includes the scoring fields
 
 > How many phrases are sent to the LLM per rating request?
 
-Each request includes two phrases: the benchmark phrase plus another one.
+Each request includes two phrases.
+
+- The benchmark phrase you give to set the baseline across requests.
+
+- The target phrase the system grabs while looping through the vocabulary.
+
+> Is the benchmark phrase or the target phrase scored first?
+
+The benchmark phrase gets scored first.
+
+Scoring the benchmark phrase first makes sure it's evaluated before the target phrase's score is generated. This way, the benchmark phrase's context stays more alike across requests compared to using the reverse order.
 
 > Are the association scores normalized across multiple requests?
 
