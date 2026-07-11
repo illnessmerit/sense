@@ -86,6 +86,8 @@ Yes.
 
 `sense` sets the `seed` to `0`.
 
+"[When seed is fixed to a specific value, the model makes a best effort to provide the same response for repeated requests.](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/content-generation-parameters#seed)"
+
 > What's the temperature `sense` uses for rating associations?
 
 `sense` runs at a temperature of 0 for rating associations. The whole point is to get the model to tap into its knowledge and spit out its best estimate.
