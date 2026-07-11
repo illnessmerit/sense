@@ -36,7 +36,7 @@ Evaluating every English word in Wiktionary would cost too much.
 
 No.
 
-`sense` pulls the `wiktionary.tsv` file from the `prevalence-data` repo.
+`sense` pulls the `wiktionary.tsv` file from the [`prevalence-data`](https://github.com/8ta4/prevalence-data) repo.
 
 > Does `sense` check both single words and multi-word phrases for double meanings?
 
