@@ -1,4 +1,10 @@
-{ pkgs, lib, config, inputs, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  inputs,
+  ...
+}:
 
 {
   # https://devenv.sh/basics/
@@ -53,6 +59,8 @@
       # Direct execution of gitleaks here results in '[git] fatal: cannot change to 'devenv.nix': Not a directory'.
       entry = "bash -c 'exec gitleaks git --redact --staged --verbose'";
     };
+    # https://github.com/NixOS/nixfmt/blob/7cad8663932db4519d4c5b623becdcda655cef7c/README.md?plain=1#L165
+    nixfmt.enable = true;
     prettier.enable = true;
   };
 
