@@ -216,7 +216,6 @@ No.
 
 `sense` processes batches sequentially. That way, I dodge the headache of tracking a bunch of active batch names.
 
-
 > Does `sense` wait for a batch to finish?
 
 Yes.
@@ -228,7 +227,6 @@ Yes.
 The polling interval is set to 10 seconds.
 
 Polling every second might overload the API.
-
 
 > Does running multiple instances of `sense` cause duplicate batch requests?
 
