@@ -9,6 +9,7 @@
 
   # https://devenv.sh/packages/
   packages = [
+    pkgs.ghcid
     pkgs.git
     pkgs.gitleaks
     pkgs.pre-commit
@@ -27,6 +28,14 @@
   # https://devenv.sh/scripts/
   scripts.hello.exec = ''
     echo hello from $GREET
+  '';
+  scripts.watch.exec = ''
+    ghcid -a \
+    -c 'stack ghci --ghci-options "-ghci-script ghcid.ghci" --no-load' \
+    --no-height-limit \
+    -r \
+    -s ':set -Wprepositive-qualified-module' \
+    -W
   '';
 
   # https://devenv.sh/basics/
