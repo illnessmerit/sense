@@ -9,6 +9,7 @@
 
   # https://devenv.sh/packages/
   packages = [
+    pkgs.ghcid
     pkgs.git
     pkgs.gitleaks
     pkgs.pre-commit
@@ -28,6 +29,15 @@
   scripts.hello.exec = ''
     echo hello from $GREET
   '';
+  scripts.watch.exec = ''
+    ghcid -a \
+    -c 'stack ghci --ghci-options "-ghci-script ghcid.ghci" --no-load' \
+    --no-height-limit \
+    -r \
+    -s ":set args fat.yaml" \
+    -s ':set -Wprepositive-qualified-module' \
+    -W
+  '';
 
   # https://devenv.sh/basics/
   enterShell = ''
@@ -36,6 +46,7 @@
     brew bundle
     export PATH="$HOME/.ghcup/bin:$PATH"
     ghcup install stack 3.11.1
+    ghcup install hls 2.14.0.0
   '';
 
   # https://devenv.sh/tasks/
