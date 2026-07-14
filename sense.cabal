@@ -68,6 +68,7 @@ library
       base >=4.7 && <5
     , optparse-applicative
     , relude
+    , yaml
   default-language: Haskell2010
 
 executable sense-exe
@@ -115,6 +116,7 @@ executable sense-exe
     , optparse-applicative
     , relude
     , sense
+    , yaml
   default-language: Haskell2010
 
 test-suite sense-test
@@ -163,4 +165,5 @@ test-suite sense-test
     , optparse-applicative
     , relude
     , sense
+    , yaml
   default-language: Haskell2010
