@@ -24,4 +24,3 @@ main = do
     Right (config :: Config) -> do
       putTextLn "YAML file parsed successfully"
       print config
-  pure ()
