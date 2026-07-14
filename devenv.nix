@@ -32,6 +32,7 @@
   enterShell = ''
     hello         # Run scripts directly
     git --version # Use packages
+    brew bundle
   '';
 
   # https://devenv.sh/tasks/
