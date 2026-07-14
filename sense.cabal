@@ -32,9 +32,41 @@ library
       Paths_sense
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  default-extensions:
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveFunctor
+      DeriveFoldable
+      DeriveTraversable
+      DeriveGeneric
+      DerivingStrategies
+      DerivingVia
+      EmptyDataDecls
+      FlexibleContexts
+      FlexibleInstances
+      GeneralizedNewtypeDeriving
+      ImportQualifiedPost
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      NamedFieldPuns
+      NoImplicitPrelude
+      PatternGuards
+      PatternSynonyms
+      RankNTypes
+      RecordWildCards
+      OverloadedRecordDot
+      OverloadedStrings
+      ScopedTypeVariables
+      TupleSections
+      TypeFamilies
+      ViewPatterns
+  ghc-options: -Weverything -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-unsafe -Wno-safe -Wno-trustworthy-safe -Wno-inferred-safe-imports -Wno-missing-safe-haskell-mode -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -Wno-missing-export-lists -Wno-missing-kind-signatures -Wno-partial-fields -Wno-missing-role-annotations
   build-depends:
       base >=4.7 && <5
+    , relude
   default-language: Haskell2010
 
 executable sense-exe
@@ -45,9 +77,41 @@ executable sense-exe
       Paths_sense
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveFunctor
+      DeriveFoldable
+      DeriveTraversable
+      DeriveGeneric
+      DerivingStrategies
+      DerivingVia
+      EmptyDataDecls
+      FlexibleContexts
+      FlexibleInstances
+      GeneralizedNewtypeDeriving
+      ImportQualifiedPost
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      NamedFieldPuns
+      NoImplicitPrelude
+      PatternGuards
+      PatternSynonyms
+      RankNTypes
+      RecordWildCards
+      OverloadedRecordDot
+      OverloadedStrings
+      ScopedTypeVariables
+      TupleSections
+      TypeFamilies
+      ViewPatterns
+  ghc-options: -Weverything -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-unsafe -Wno-safe -Wno-trustworthy-safe -Wno-inferred-safe-imports -Wno-missing-safe-haskell-mode -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -Wno-missing-export-lists -Wno-missing-kind-signatures -Wno-partial-fields -Wno-missing-role-annotations -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , relude
     , sense
   default-language: Haskell2010
 
@@ -60,8 +124,40 @@ test-suite sense-test
       Paths_sense
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveFunctor
+      DeriveFoldable
+      DeriveTraversable
+      DeriveGeneric
+      DerivingStrategies
+      DerivingVia
+      EmptyDataDecls
+      FlexibleContexts
+      FlexibleInstances
+      GeneralizedNewtypeDeriving
+      ImportQualifiedPost
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      NamedFieldPuns
+      NoImplicitPrelude
+      PatternGuards
+      PatternSynonyms
+      RankNTypes
+      RecordWildCards
+      OverloadedRecordDot
+      OverloadedStrings
+      ScopedTypeVariables
+      TupleSections
+      TypeFamilies
+      ViewPatterns
+  ghc-options: -Weverything -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-unsafe -Wno-safe -Wno-trustworthy-safe -Wno-inferred-safe-imports -Wno-missing-safe-haskell-mode -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -Wno-missing-export-lists -Wno-missing-kind-signatures -Wno-partial-fields -Wno-missing-role-annotations -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , relude
     , sense
   default-language: Haskell2010
