@@ -4,7 +4,7 @@ import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
 import Data.Yaml (FromJSON, Value, decodeFileEither, object)
-import Network.HTTP.Req (POST (POST), ReqBodyJson (ReqBodyJson), defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
+import Network.HTTP.Req (POST (POST), ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
 import Relude
@@ -38,6 +38,9 @@ instance FromJSON Config
 isCandidate :: Row -> Bool
 isCandidate row = row.prevalence >= 50 && row.lemma
 
+url :: Url Https
+url = https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent"
+
 main :: IO ()
 main = do
   home <- getHomeDirectory
@@ -62,7 +65,7 @@ main = do
             r <-
               req
                 POST
-                (https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent")
+                url
                 (ReqBodyJson $ object [])
                 jsonResponse
                 $ header "x-goog-api-key" key
