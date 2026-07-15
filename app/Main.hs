@@ -45,26 +45,25 @@ main = do
   systemPrompt <- readFileBS "system.txt"
   createDirectoryIfMissing True $ home </> ".local/state/sense/"
   content <- readFileLBS "wiktionary.tsv"
+  file <- execParser $ info (strArgument mempty <**> helper) mempty
+  result <- decodeFileEither file
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Left _ -> pure ()
     Right (_, rows :: Vector Row) -> do
       let _ = Vector.filter isCandidate rows
-      pure ()
-  file <- execParser $ info (strArgument mempty <**> helper) mempty
-  result <- decodeFileEither file
-  case result of
-    Left exception -> do
-      putTextLn "YAML file could not be parsed"
-      print exception
-    Right (config :: Config) -> do
-      putTextLn "YAML file parsed successfully"
-      print config
-      runReq defaultHttpConfig $ do
-        r <-
-          req
-            POST
-            (https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent")
-            (ReqBodyJson $ object [])
-            jsonResponse
-            $ header "x-goog-api-key" key
-        liftIO $ print (responseBody r :: Value)
+      case result of
+        Left exception -> do
+          putTextLn "YAML file could not be parsed"
+          print exception
+        Right (config :: Config) -> do
+          putTextLn "YAML file parsed successfully"
+          print config
+          runReq defaultHttpConfig $ do
+            r <-
+              req
+                POST
+                (https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent")
+                (ReqBodyJson $ object [])
+                jsonResponse
+                $ header "x-goog-api-key" key
+            liftIO $ print (responseBody r :: Value)
