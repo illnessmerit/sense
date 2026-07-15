@@ -4,6 +4,8 @@ import Data.Yaml (FromJSON, decodeFileEither)
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
 import Relude
+import System.Directory (getHomeDirectory)
+import System.FilePath ((</>))
 
 data Config = Config
   { benchmark :: Text,
@@ -15,6 +17,8 @@ instance FromJSON Config
 
 main :: IO ()
 main = do
+  home <- getHomeDirectory
+  key <- readFileBS $ home </> ".config/sense/key"
   file <- execParser $ info (strArgument mempty <**> helper) mempty
   result <- decodeFileEither file
   case result of
