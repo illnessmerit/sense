@@ -3,7 +3,7 @@ module Main (main) where
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
-import Data.Yaml (FromJSON, Value, decodeFileEither, object)
+import Data.Yaml (FromJSON, Value, decodeFileEither, object, (.=))
 import Network.HTTP.Req (POST (POST), ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
@@ -60,7 +60,30 @@ main = do
               req
                 POST
                 url
-                (ReqBodyJson $ object [])
+                ( ReqBodyJson
+                    $ object
+                      [ "batch"
+                          .= object
+                            [ "input_config"
+                                .= object
+                                  [ "requests"
+                                      .= object
+                                        [ "requests"
+                                            .= [ object
+                                                   [ "request"
+                                                       .= object
+                                                         [ "contents"
+                                                             .= [ object
+                                                                    []
+                                                                ]
+                                                         ]
+                                                   ]
+                                               ]
+                                        ]
+                                  ]
+                            ]
+                      ]
+                )
                 jsonResponse
                 $ header "x-goog-api-key" key
             liftIO $ print (responseBody r :: Value)
