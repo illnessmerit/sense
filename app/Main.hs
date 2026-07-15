@@ -35,12 +35,6 @@ data Config = Config
 
 instance FromJSON Config
 
-isCandidate :: Row -> Bool
-isCandidate row = row.prevalence >= 50 && row.lemma
-
-url :: Url Https
-url = https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent"
-
 main :: IO ()
 main = do
   home <- getHomeDirectory
@@ -70,3 +64,9 @@ main = do
                 jsonResponse
                 $ header "x-goog-api-key" key
             liftIO $ print (responseBody r :: Value)
+
+isCandidate :: Row -> Bool
+isCandidate row = row.prevalence >= 50 && row.lemma
+
+url :: Url Https
+url = https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent"
