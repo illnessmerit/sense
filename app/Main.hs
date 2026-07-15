@@ -37,6 +37,7 @@ main :: IO ()
 main = do
   home <- getHomeDirectory
   key <- readFileBS $ home </> ".config/sense/key"
+  systemPrompt <- readFileBS "system.txt"
   createDirectoryIfMissing True $ home </> ".local/state/sense/"
   content <- readFileLBS "wiktionary.tsv"
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
