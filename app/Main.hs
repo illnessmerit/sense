@@ -2,6 +2,7 @@ module Main (main) where
 
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
 import Data.Vector (Vector)
+import Data.Vector qualified as Vector
 import Data.Yaml (FromJSON, decodeFileEither)
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
@@ -33,15 +34,21 @@ data Config = Config
 
 instance FromJSON Config
 
+isCandidate :: Row -> Bool
+isCandidate row = row.prevalence >= 0.5 && row.lemma
+
 main :: IO ()
 main = do
   home <- getHomeDirectory
   key <- readFileBS $ home </> ".config/sense/key"
+  systemPrompt <- readFileBS "system.txt"
   createDirectoryIfMissing True $ home </> ".local/state/sense/"
   content <- readFileLBS "wiktionary.tsv"
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Left _ -> pure ()
-    Right (_, rows :: Vector Row) -> pure ()
+    Right (_, rows :: Vector Row) -> do
+      let _ = Vector.filter isCandidate rows
+      pure ()
   file <- execParser $ info (strArgument mempty <**> helper) mempty
   result <- decodeFileEither file
   case result of
