@@ -14,15 +14,20 @@
 
 1. Install [Homebrew](https://brew.sh/#install).
 
+1. Install [devenv](https://github.com/cachix/devenv/blob/83e8d7d34bdebad98ab936b6af53d57ae67af420/docs/src/getting-started.md#installation).
+
 1. Open a terminal.
 
 1. Copy an API key from [Google AI Studio](https://aistudio.google.com/api-keys).
 
 1. Run these commands:
    ```bash
-   brew install 8ta4/sense/sense
    mkdir -p ~/.config/sense/
    pbpaste > ~/.config/sense/key
+   git clone https://github.com/8ta4/sense
+   cd sense
+   devenv allow
+   download
    ```
 
 ## Usage
