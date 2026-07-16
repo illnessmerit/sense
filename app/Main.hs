@@ -40,20 +40,6 @@ data Config = Config
 
 instance FromJSON Config
 
-poll :: Req (JsonResponse Value) -> IO ()
-poll request = runReq defaultHttpConfig $ do
-  response <- request
-  case (responseBody response) ^? key "metadata" . key "state" . _String of
-    Just "BATCH_STATE_SUCCEEDED" -> pure ()
-    Just "BATCH_STATE_RUNNING" -> liftIO $ do
-      threadDelay 10000000
-      poll request
-    Just _ -> pure ()
-    Nothing -> pure ()
-
-batchLimit :: Int
-batchLimit = 2 ^ (16 :: Int)
-
 main :: IO ()
 main = do
   home <- getHomeDirectory
@@ -125,6 +111,17 @@ main = do
               Nothing -> pure ()
     Left _ -> pure ()
 
+poll :: Req (JsonResponse Value) -> IO ()
+poll request = runReq defaultHttpConfig $ do
+  response <- request
+  case (responseBody response) ^? key "metadata" . key "state" . _String of
+    Just "BATCH_STATE_SUCCEEDED" -> pure ()
+    Just "BATCH_STATE_RUNNING" -> liftIO $ do
+      threadDelay 10000000
+      poll request
+    Just _ -> pure ()
+    Nothing -> pure ()
+
 isCandidate :: Row -> Bool
 isCandidate row = row.prevalence >= 50 && row.lemma
 
@@ -133,3 +130,6 @@ batchUrl = baseUrl /: "models" /: "gemini-3.5-flash:batchGenerateContent"
 
 baseUrl :: Url 'Https
 baseUrl = https "generativelanguage.googleapis.com" /: "v1beta"
+
+batchLimit :: Int
+batchLimit = 2 ^ (16 :: Int)
