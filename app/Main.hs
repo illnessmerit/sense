@@ -48,6 +48,9 @@ poll request = runReq defaultHttpConfig $ do
     Just _ -> pure ()
     Nothing -> pure ()
 
+batchLimit :: Int
+batchLimit = 2 ^ (16 :: Int)
+
 main :: IO ()
 main = do
   home <- getHomeDirectory
@@ -101,7 +104,7 @@ main = do
                                                          ]
                                                      ]
                                                  )
-                                                   <$> candidates
+                                                   <$> Vector.take batchLimit candidates
                                                )
                                         ]
                                   ]
