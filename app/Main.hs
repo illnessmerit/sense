@@ -7,7 +7,7 @@ import Data.Text (splitOn)
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
 import Data.Yaml (FromJSON, Value, decodeFileEither, object, (.=))
-import Network.HTTP.Req (POST (POST), ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
+import Network.HTTP.Req (GET (GET), NoReqBody (NoReqBody), POST (POST), ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
 import Relude
@@ -49,6 +49,15 @@ main = do
   content <- readFileLBS "wiktionary.tsv"
   file <- execParser $ info (strArgument mempty <**> helper) mempty
   result <- decodeFileEither file
+  let batchIdPath = statePath </> "id"
+  batchId <- readFileBS batchIdPath
+  runReq defaultHttpConfig $ do
+    response <- req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse $ header "x-goog-api-key" apiKey
+    case (responseBody response :: Value) ^? key "metadata" . key "state" . _String of
+      Just "BATCH_STATE_SUCCEEDED" -> pure ()
+      Just "BATCH_STATE_RUNNING" -> pure ()
+      Just _ -> pure ()
+      Nothing -> pure ()
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Right (_, rows :: Vector Row) -> do
       let _ = Vector.filter isCandidate rows
@@ -63,7 +72,7 @@ main = do
             response <-
               req
                 POST
-                url
+                batchUrl
                 ( ReqBodyJson
                     $ object
                       [ "batch"
@@ -94,12 +103,15 @@ main = do
                 jsonResponse
                 $ header "x-goog-api-key" apiKey
             case (responseBody response :: Value) ^? key "name" . _String of
-              Just name -> writeFileText (statePath </> "id") $ (splitOn "/" name) !! 1
+              Just name -> writeFileText batchIdPath $ (splitOn "/" name) !! 1
               Nothing -> pure ()
     Left _ -> pure ()
 
 isCandidate :: Row -> Bool
 isCandidate row = row.prevalence >= 50 && row.lemma
 
-url :: Url 'Https
-url = https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent"
+batchUrl :: Url 'Https
+batchUrl = baseUrl /: "models" /: "gemini-3.5-flash:batchGenerateContent"
+
+baseUrl :: Url 'Https
+baseUrl = https "generativelanguage.googleapis.com" /: "v1beta"
