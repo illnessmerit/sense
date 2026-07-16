@@ -56,8 +56,6 @@ main = do
   let statePath = home </> ".local/state/sense"
   createDirectoryIfMissing True statePath
   content <- readFileLBS "wiktionary.tsv"
-  file <- execParser $ info (strArgument mempty <**> helper) mempty
-  result <- decodeFileEither file
   let batchIdPath = statePath </> "id"
   batchId <- readFileBS batchIdPath
   let apiKeyHeader = header "x-goog-api-key" apiKey
@@ -65,6 +63,8 @@ main = do
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Right (_, rows :: Vector Row) -> do
       let _ = Vector.filter isCandidate rows
+      file <- execParser $ info (strArgument mempty <**> helper) mempty
+      result <- decodeFileEither file
       case result of
         Left exception -> do
           putTextLn "YAML file could not be parsed"
