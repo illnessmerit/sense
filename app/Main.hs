@@ -47,7 +47,6 @@ main = do
   file <- execParser $ info (strArgument mempty <**> helper) mempty
   result <- decodeFileEither file
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
-    Left _ -> pure ()
     Right (_, rows :: Vector Row) -> do
       let _ = Vector.filter isCandidate rows
       case result of
@@ -92,6 +91,7 @@ main = do
                 jsonResponse
                 $ header "x-goog-api-key" apiKey
             liftIO $ print ((responseBody response :: Value) ^? key "name" . _String)
+    Left _ -> pure ()
 
 isCandidate :: Row -> Bool
 isCandidate row = row.prevalence >= 50 && row.lemma
