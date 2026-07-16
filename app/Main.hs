@@ -1,13 +1,18 @@
 module Main (main) where
 
+import Control.Concurrent (threadDelay)
+import Control.Lens.Fold ((^?))
+import Data.Aeson.Lens (key, _String)
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
+import Data.Text (splitOn)
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
 import Data.Yaml (FromJSON, Value, decodeFileEither, object, (.=))
-import Network.HTTP.Req (POST (POST), ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
+import Network.HTTP.Req (GET (GET), JsonResponse, NoReqBody (NoReqBody), POST (POST), Req, ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
 import Relude
+import Relude.Unsafe ((!!))
 import System.Directory (createDirectoryIfMissing, getHomeDirectory)
 import System.FilePath ((</>))
 
@@ -38,16 +43,20 @@ instance FromJSON Config
 main :: IO ()
 main = do
   home <- getHomeDirectory
-  key <- readFileBS $ home </> ".config/sense/key"
+  apiKey <- readFileBS $ home </> ".config/sense/key"
   systemPrompt <- readFileBS "system.txt"
-  createDirectoryIfMissing True $ home </> ".local/state/sense/"
+  let statePath = home </> ".local/state/sense"
+  createDirectoryIfMissing True statePath
   content <- readFileLBS "wiktionary.tsv"
-  file <- execParser $ info (strArgument mempty <**> helper) mempty
-  result <- decodeFileEither file
+  let batchIdPath = statePath </> "id"
+  batchId <- readFileBS batchIdPath
+  let apiKeyHeader = header "x-goog-api-key" apiKey
+  poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
-    Left _ -> pure ()
     Right (_, rows :: Vector Row) -> do
-      let _ = Vector.filter isCandidate rows
+      let candidates = Vector.filter isCandidate rows
+      file <- execParser $ info (strArgument mempty <**> helper) mempty
+      result <- decodeFileEither file
       case result of
         Left exception -> do
           putTextLn "YAML file could not be parsed"
@@ -56,10 +65,10 @@ main = do
           putTextLn "YAML file parsed successfully"
           print config
           runReq defaultHttpConfig $ do
-            r <-
+            response <-
               req
                 POST
-                url
+                batchUrl
                 ( ReqBodyJson
                     $ object
                       [ "batch"
@@ -69,30 +78,58 @@ main = do
                                   [ "requests"
                                       .= object
                                         [ "requests"
-                                            .= [ object
-                                                   [ "request"
-                                                       .= object
-                                                         [ "contents"
-                                                             .= [ object
-                                                                    []
-                                                                ],
-                                                           "generationConfig"
+                                            .= ( ( \candidate ->
+                                                     [ object
+                                                         [ "request"
                                                              .= object
-                                                               ["maxOutputTokens" .= (100 :: Int)]
+                                                               [ "contents"
+                                                                   .= [ object
+                                                                          ["parts" .= [object ["text" .= candidate.entry]]]
+                                                                      ],
+                                                                 "generationConfig"
+                                                                   .= object
+                                                                     [ "maxOutputTokens" .= (100 :: Int),
+                                                                       "thinkingConfig"
+                                                                         .= object
+                                                                           ["thinkingLevel" .= ("MINIMAL" :: Text)]
+                                                                     ]
+                                                               ]
                                                          ]
-                                                   ]
-                                               ]
+                                                     ]
+                                                 )
+                                                   <$> Vector.take batchLimit candidates
+                                               )
                                         ]
                                   ]
                             ]
                       ]
                 )
                 jsonResponse
-                $ header "x-goog-api-key" key
-            liftIO $ print (responseBody r :: Value)
+                apiKeyHeader
+            case (responseBody response :: Value) ^? key "name" . _String of
+              Just name -> writeFileText batchIdPath $ (splitOn "/" name) !! 1
+              Nothing -> pure ()
+    Left _ -> pure ()
+
+poll :: Req (JsonResponse Value) -> IO ()
+poll request = runReq defaultHttpConfig $ do
+  response <- request
+  case (responseBody response) ^? key "metadata" . key "state" . _String of
+    Just "BATCH_STATE_SUCCEEDED" -> pure ()
+    Just "BATCH_STATE_RUNNING" -> liftIO $ do
+      threadDelay 10000000
+      poll request
+    Just _ -> pure ()
+    Nothing -> pure ()
 
 isCandidate :: Row -> Bool
 isCandidate row = row.prevalence >= 50 && row.lemma
 
-url :: Url Https
-url = https "generativelanguage.googleapis.com" /: "v1beta" /: "models" /: "gemini-3.5-flash:batchGenerateContent"
+batchUrl :: Url 'Https
+batchUrl = baseUrl /: "models" /: "gemini-3.5-flash:batchGenerateContent"
+
+baseUrl :: Url 'Https
+baseUrl = https "generativelanguage.googleapis.com" /: "v1beta"
+
+batchLimit :: Int
+batchLimit = 2 ^ (16 :: Int)
