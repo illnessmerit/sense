@@ -7,7 +7,7 @@ import Data.Text (splitOn)
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
 import Data.Yaml (FromJSON, Value, decodeFileEither, object, (.=))
-import Network.HTTP.Req (GET (GET), NoReqBody (NoReqBody), POST (POST), ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
+import Network.HTTP.Req (GET (GET), JsonResponse, NoReqBody (NoReqBody), POST (POST), Req, ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
 import Relude
@@ -39,6 +39,15 @@ data Config = Config
 
 instance FromJSON Config
 
+poll :: Req (JsonResponse Value) -> IO ()
+poll request = runReq defaultHttpConfig $ do
+  response <- request
+  case (responseBody response) ^? key "metadata" . key "state" . _String of
+    Just "BATCH_STATE_SUCCEEDED" -> pure ()
+    Just "BATCH_STATE_RUNNING" -> pure ()
+    Just _ -> pure ()
+    Nothing -> pure ()
+
 main :: IO ()
 main = do
   home <- getHomeDirectory
@@ -52,13 +61,7 @@ main = do
   let batchIdPath = statePath </> "id"
   batchId <- readFileBS batchIdPath
   let apiKeyHeader = header "x-goog-api-key" apiKey
-  runReq defaultHttpConfig $ do
-    response <- req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
-    case (responseBody response :: Value) ^? key "metadata" . key "state" . _String of
-      Just "BATCH_STATE_SUCCEEDED" -> pure ()
-      Just "BATCH_STATE_RUNNING" -> pure ()
-      Just _ -> pure ()
-      Nothing -> pure ()
+  poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Right (_, rows :: Vector Row) -> do
       let _ = Vector.filter isCandidate rows
