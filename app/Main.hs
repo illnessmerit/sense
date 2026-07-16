@@ -62,7 +62,7 @@ main = do
   poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Right (_, rows :: Vector Row) -> do
-      let _ = Vector.filter isCandidate rows
+      let candidates = Vector.filter isCandidate rows
       file <- execParser $ info (strArgument mempty <**> helper) mempty
       result <- decodeFileEither file
       case result of
