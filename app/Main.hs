@@ -86,19 +86,23 @@ main = do
                                   [ "requests"
                                       .= object
                                         [ "requests"
-                                            .= [ object
-                                                   [ "request"
-                                                       .= object
-                                                         [ "contents"
-                                                             .= [ object
-                                                                    []
-                                                                ],
-                                                           "generationConfig"
+                                            .= ( ( \candidate ->
+                                                     [ object
+                                                         [ "request"
                                                              .= object
-                                                               ["maxOutputTokens" .= (100 :: Int)]
+                                                               [ "contents"
+                                                                   .= [ object
+                                                                          ["parts" .= [object ["text" .= candidate.entry]]]
+                                                                      ],
+                                                                 "generationConfig"
+                                                                   .= object
+                                                                     ["maxOutputTokens" .= (100 :: Int)]
+                                                               ]
                                                          ]
-                                                   ]
-                                               ]
+                                                     ]
+                                                 )
+                                                   <$> candidates
+                                               )
                                         ]
                                   ]
                             ]
