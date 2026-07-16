@@ -51,8 +51,9 @@ main = do
   result <- decodeFileEither file
   let batchIdPath = statePath </> "id"
   batchId <- readFileBS batchIdPath
+  let apiKeyHeader = header "x-goog-api-key" apiKey
   runReq defaultHttpConfig $ do
-    response <- req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse $ header "x-goog-api-key" apiKey
+    response <- req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
     case (responseBody response :: Value) ^? key "metadata" . key "state" . _String of
       Just "BATCH_STATE_SUCCEEDED" -> pure ()
       Just "BATCH_STATE_RUNNING" -> pure ()
@@ -101,7 +102,7 @@ main = do
                       ]
                 )
                 jsonResponse
-                $ header "x-goog-api-key" apiKey
+                apiKeyHeader
             case (responseBody response :: Value) ^? key "name" . _String of
               Just name -> writeFileText batchIdPath $ (splitOn "/" name) !! 1
               Nothing -> pure ()
