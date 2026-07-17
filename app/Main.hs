@@ -115,6 +115,7 @@ makePayload config input =
       "generationConfig"
         .= object
           [ "maxOutputTokens" .= (100 :: Int),
+            "responseMimeType" .= ("application/json" :: Text),
             "thinkingConfig"
               .= object
                 ["thinkingLevel" .= ("MINIMAL" :: Text)]
