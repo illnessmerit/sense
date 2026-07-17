@@ -42,7 +42,7 @@
   # The trade-off is that the initial module load is not checked for this specific warning.
   scripts.watch.exec = ''
     ghcid -a \
-    -c 'stack ghci --ghci-options "-ghci-script ghcid.ghci" --no-load' \
+    -c 'stack ghci' \
     --no-height-limit \
     -r \
     -s ":set args fat.yaml" \
