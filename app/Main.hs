@@ -8,7 +8,7 @@ import Data.Text (splitOn)
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
 import Data.Yaml (FromJSON, Value, decodeFileEither, object, (.=))
-import Network.HTTP.Req (GET (GET), JsonResponse, NoReqBody (NoReqBody), POST (POST), Req, ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
+import Network.HTTP.Req (GET (GET), JsonResponse, NoReqBody (NoReqBody), Option, POST (POST), Req, ReqBodyJson (ReqBodyJson), Scheme (Https), Url, defaultHttpConfig, header, https, jsonResponse, req, responseBody, runReq, (/:))
 import Options.Applicative (execParser, helper, strArgument)
 import Options.Applicative.Builder (info)
 import Relude
@@ -46,8 +46,7 @@ main = do
   let statePath = home </> ".local/state/sense"
   createDirectoryIfMissing True statePath
   let batchIdPath = statePath </> "id"
-  apiKey <- readFileBS $ home </> ".config/sense/key"
-  let apiKeyHeader = header "x-goog-api-key" apiKey
+  apiKeyHeader <- loadApiKeyHeader
   exists <- doesFileExist batchIdPath
   when exists $ do
     batchId <- readFileBS batchIdPath
@@ -83,19 +82,7 @@ main = do
                                             .= ( ( \candidate ->
                                                      [ object
                                                          [ "request"
-                                                             .= object
-                                                               [ "contents"
-                                                                   .= [ object
-                                                                          ["parts" .= [object ["text" .= candidate.entry]]]
-                                                                      ],
-                                                                 "generationConfig"
-                                                                   .= object
-                                                                     [ "maxOutputTokens" .= (100 :: Int),
-                                                                       "thinkingConfig"
-                                                                         .= object
-                                                                           ["thinkingLevel" .= ("MINIMAL" :: Text)]
-                                                                     ]
-                                                               ]
+                                                             .= makePayload candidate.entry
                                                          ]
                                                      ]
                                                  )
@@ -112,6 +99,28 @@ main = do
               Just name -> writeFileText batchIdPath $ (splitOn "/" name) !! 1
               Nothing -> pure ()
     Left _ -> pure ()
+
+loadApiKeyHeader :: IO (Option 'Https)
+loadApiKeyHeader = do
+  home <- getHomeDirectory
+  apiKey <- readFileBS $ home </> ".config/sense/key"
+  pure $ header "x-goog-api-key" apiKey
+
+makePayload :: Text -> Value
+makePayload input =
+  object
+    [ "contents"
+        .= [ object
+               ["parts" .= [object ["text" .= input]]]
+           ],
+      "generationConfig"
+        .= object
+          [ "maxOutputTokens" .= (100 :: Int),
+            "thinkingConfig"
+              .= object
+                ["thinkingLevel" .= ("MINIMAL" :: Text)]
+          ]
+    ]
 
 poll :: Req (JsonResponse Value) -> IO ()
 poll request = runReq defaultHttpConfig $ do
