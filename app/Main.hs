@@ -1,9 +1,12 @@
 module Main where
 
 import Control.Concurrent (threadDelay)
-import Control.Lens.Fold ((^?))
+import Control.Lens.Fold (folding, (^..), (^?))
+import Data.Aeson (decodeStrict)
 import Data.Aeson.Key (fromText)
-import Data.Aeson.Lens (key, _String)
+import Data.Aeson.KeyMap (KeyMap, keys)
+import Data.Aeson.KeyMap qualified as KeyMap
+import Data.Aeson.Lens (key, values, _Object, _String)
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
 import Data.Text (splitOn)
 import Data.Vector (Vector)
@@ -46,12 +49,6 @@ main = do
   home <- getHomeDirectory
   let statePath = home </> ".local/state/sense"
   createDirectoryIfMissing True statePath
-  let batchIdPath = statePath </> "id"
-  apiKeyHeader <- loadApiKeyHeader
-  exists <- doesFileExist batchIdPath
-  when exists $ do
-    batchId <- readFileBS batchIdPath
-    poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
   content <- readFileLBS "wiktionary.tsv"
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Right (_, rows :: Vector Row) -> do
@@ -64,6 +61,26 @@ main = do
         Right (config :: Config) -> do
           putTextLn "YAML file parsed successfully"
           print config
+          let batchIdPath = statePath </> "id"
+          apiKeyHeader <- loadApiKeyHeader
+          batchExists <- doesFileExist batchIdPath
+          progress <-
+            if batchExists
+              then do
+                let cacheFile = statePath </> "cache.json"
+                cacheExists <- doesFileExist cacheFile
+                cache <-
+                  if cacheExists
+                    then do
+                      eitherCache <- decodeFileEither cacheFile
+                      case eitherCache of
+                        Right cache' -> pure cache'
+                        Left _ -> pure KeyMap.empty
+                    else pure KeyMap.empty
+                batchId <- readFileBS batchIdPath
+                results <- poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
+                pure $ cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (/= fromText config.benchmark)) <$> keys) &&& id) <$> results)
+              else pure KeyMap.empty
           let candidates =
                 Vector.filter
                   ( \row ->
@@ -85,11 +102,10 @@ main = do
                                       .= object
                                         [ "requests"
                                             .= ( ( \target ->
-                                                     [ object
-                                                         [ "request"
-                                                             .= makePayload config target
-                                                         ]
-                                                     ]
+                                                     object
+                                                       [ "request"
+                                                           .= makePayload config target
+                                                       ]
                                                  )
                                                    <$> (.entry)
                                                    <$> Vector.take batchLimit candidates
@@ -123,13 +139,15 @@ makePayload config target =
                       ]
                ]
            ],
-      "generationConfig"
+      "generation_config"
         .= object
-          [ "maxOutputTokens" .= (100 :: Int),
-            "responseMimeType" .= ("application/json" :: Text),
-            "responseJsonSchema"
+          [ "max_output_tokens" .= (100 :: Int),
+            "response_mime_type" .= ("application/json" :: Text),
+            -- Using camelCase (`responseJsonSchema`) causes the Gemini Batch API to generate incorrect properties in the output.
+            -- To ensure the schema is applied correctly, we use snake_case (`response_json_schema`).
+            "response_json_schema"
               .= object
-                [ "additionalProperties" .= False,
+                [ "additional_properties" .= False,
                   "properties"
                     .= object
                       [ fromText config.benchmark
@@ -137,17 +155,17 @@ makePayload config target =
                         fromText target
                           .= percentageSchema
                       ],
-                  "propertyOrdering" .= [fromText config.benchmark, fromText target],
+                  "property_ordering" .= [fromText config.benchmark, fromText target],
                   "required" .= [fromText config.benchmark, fromText target],
                   "type" .= ("object" :: Text)
                 ],
             "seed" .= (0 :: Int),
             "temperature" .= (0 :: Int),
-            "thinkingConfig"
+            "thinking_config"
               .= object
-                ["thinkingLevel" .= ("MINIMAL" :: Text)]
+                ["thinking_level" .= ("MINIMAL" :: Text)]
           ],
-      "systemInstruction"
+      "system_instruction"
         .= object
           [ "parts"
               .= [ object
@@ -167,16 +185,32 @@ percentageSchema =
 systemPrompt :: Text
 systemPrompt = "Estimate the percentage of Americans 10 years or older who know each phrase's meaning that fits the theme."
 
-poll :: Req (JsonResponse Value) -> IO ()
+poll :: Req (JsonResponse Value) -> IO [KeyMap Value]
 poll request = runReq defaultHttpConfig $ do
   response <- request
   case (responseBody response) ^? key "metadata" . key "state" . _String of
-    Just "BATCH_STATE_SUCCEEDED" -> pure ()
+    Just "BATCH_STATE_SUCCEEDED" ->
+      pure $ (responseBody response)
+        ^.. key "response"
+          . key "inlinedResponses"
+          . key "inlinedResponses"
+          . values
+          . key "response"
+          . key "candidates"
+          . values
+          . key "content"
+          . key "parts"
+          . values
+          . key "text"
+          . _String
+          . folding (decodeStrict . encodeUtf8 :: Text -> Maybe Value)
+          . values
+          . _Object
     Just "BATCH_STATE_RUNNING" -> liftIO $ do
       threadDelay 10000000
       poll request
-    Just _ -> pure ()
-    Nothing -> pure ()
+    Just _ -> pure []
+    Nothing -> pure []
 
 batchUrl :: Url 'Https
 batchUrl = baseUrl /: "models" /: "gemini-3.5-flash:batchGenerateContent"
