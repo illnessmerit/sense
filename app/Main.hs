@@ -123,7 +123,8 @@ makePayload config input =
             "responseMimeType" .= ("application/json" :: Text),
             "responseJsonSchema"
               .= object
-                [ "properties"
+                [ "additionalProperties" .= False,
+                  "properties"
                     .= object
                       [ fromText config.benchmark
                           .= percentageSchema,
@@ -131,6 +132,7 @@ makePayload config input =
                           .= percentageSchema
                       ],
                   "propertyOrdering" .= [fromText config.benchmark, fromText input],
+                  "required" .= [fromText config.benchmark, fromText input],
                   "type" .= ("object" :: Text)
                 ],
             "seed" .= (0 :: Int),
