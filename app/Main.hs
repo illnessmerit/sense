@@ -2,6 +2,7 @@ module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens.Fold ((^?))
+import Data.Aeson.Key (fromText)
 import Data.Aeson.Lens (key, _String)
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
 import Data.Text (splitOn)
@@ -120,6 +121,16 @@ makePayload config input =
         .= object
           [ "maxOutputTokens" .= (100 :: Int),
             "responseMimeType" .= ("application/json" :: Text),
+            "responseJsonSchema"
+              .= object
+                [ "properties"
+                    .= object
+                      [ fromText input
+                          .= object
+                            ["type" .= ("number" :: Text)]
+                      ],
+                  "type" .= ("object" :: Text)
+                ],
             "thinkingConfig"
               .= object
                 ["thinkingLevel" .= ("MINIMAL" :: Text)]
