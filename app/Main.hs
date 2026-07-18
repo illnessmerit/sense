@@ -133,7 +133,7 @@ makePayload config input =
                   "propertyOrdering" .= [fromText config.benchmark, fromText input],
                   "type" .= ("object" :: Text)
                 ],
-            "temperature" .= (0.0 :: Double),
+            "temperature" .= (0 :: Int),
             "thinkingConfig"
               .= object
                 ["thinkingLevel" .= ("MINIMAL" :: Text)]
@@ -150,8 +150,8 @@ makePayload config input =
 percentageSchema :: Value
 percentageSchema =
   object
-    [ "maximum" .= (100.0 :: Double),
-      "minimum" .= (0.0 :: Double),
+    [ "maximum" .= (100 :: Int),
+      "minimum" .= (0 :: Int),
       "type" .= ("number" :: Text)
     ]
 
