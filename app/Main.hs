@@ -125,7 +125,10 @@ makePayload config input =
               .= object
                 [ "properties"
                     .= object
-                      [ fromText input
+                      [ fromText config.benchmark
+                          .= object
+                            ["type" .= ("number" :: Text)],
+                        fromText input
                           .= object
                             ["type" .= ("number" :: Text)]
                       ],
