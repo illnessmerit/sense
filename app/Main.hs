@@ -126,11 +126,9 @@ makePayload config input =
                 [ "properties"
                     .= object
                       [ fromText config.benchmark
-                          .= object
-                            ["type" .= ("number" :: Text)],
+                          .= percentageSchema,
                         fromText input
-                          .= object
-                            ["type" .= ("number" :: Text)]
+                          .= percentageSchema
                       ],
                   "propertyOrdering" .= [fromText config.benchmark, fromText input],
                   "type" .= ("object" :: Text)
@@ -146,6 +144,14 @@ makePayload config input =
                      ["text" .= systemPrompt]
                  ]
           ]
+    ]
+
+percentageSchema :: Value
+percentageSchema =
+  object
+    [ "maximum" .= (100.0 :: Double),
+      "minimum" .= (0.0 :: Double),
+      "type" .= ("number" :: Text)
     ]
 
 systemPrompt :: Text
