@@ -1,9 +1,11 @@
 module Main where
 
 import Control.Concurrent (threadDelay)
-import Control.Lens.Fold ((^?))
+import Control.Lens.Fold (folding, (^..), (^?))
+import Data.Aeson (decodeStrict)
 import Data.Aeson.Key (fromText)
-import Data.Aeson.Lens (key, _String)
+import Data.Aeson.KeyMap (KeyMap)
+import Data.Aeson.Lens (key, values, _Object, _String)
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
 import Data.Text (splitOn)
 import Data.Vector (Vector)
@@ -46,12 +48,6 @@ main = do
   home <- getHomeDirectory
   let statePath = home </> ".local/state/sense"
   createDirectoryIfMissing True statePath
-  let batchIdPath = statePath </> "id"
-  apiKeyHeader <- loadApiKeyHeader
-  exists <- doesFileExist batchIdPath
-  when exists $ do
-    batchId <- readFileBS batchIdPath
-    poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
   content <- readFileLBS "wiktionary.tsv"
   case decodeByNameWith (defaultDecodeOptions {decDelimiter = 9}) content of
     Right (_, rows :: Vector Row) -> do
@@ -64,6 +60,15 @@ main = do
         Right (config :: Config) -> do
           putTextLn "YAML file parsed successfully"
           print config
+          let batchIdPath = statePath </> "id"
+          apiKeyHeader <- loadApiKeyHeader
+          exists <- doesFileExist batchIdPath
+          results <-
+            if exists
+              then do
+                batchId <- readFileBS batchIdPath
+                poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
+              else pure []
           let candidates =
                 Vector.filter
                   ( \row ->
@@ -168,16 +173,32 @@ percentageSchema =
 systemPrompt :: Text
 systemPrompt = "Estimate the percentage of Americans 10 years or older who know each phrase's meaning that fits the theme."
 
-poll :: Req (JsonResponse Value) -> IO ()
+poll :: Req (JsonResponse Value) -> IO [KeyMap Value]
 poll request = runReq defaultHttpConfig $ do
   response <- request
   case (responseBody response) ^? key "metadata" . key "state" . _String of
-    Just "BATCH_STATE_SUCCEEDED" -> pure ()
+    Just "BATCH_STATE_SUCCEEDED" ->
+      pure $ (responseBody response)
+        ^.. key "response"
+          . key "inlinedResponses"
+          . key "inlinedResponses"
+          . values
+          . key "response"
+          . key "candidates"
+          . values
+          . key "content"
+          . key "parts"
+          . values
+          . key "text"
+          . _String
+          . folding (decodeStrict . encodeUtf8 :: Text -> Maybe Value)
+          . values
+          . _Object
     Just "BATCH_STATE_RUNNING" -> liftIO $ do
       threadDelay 10000000
       poll request
-    Just _ -> pure ()
-    Nothing -> pure ()
+    Just _ -> pure []
+    Nothing -> pure []
 
 batchUrl :: Url 'Https
 batchUrl = baseUrl /: "models" /: "gemini-3.5-flash:batchGenerateContent"
