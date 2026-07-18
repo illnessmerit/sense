@@ -22,7 +22,7 @@
 
 1. Run these commands:
    ```bash
-   mkdir -p ~/.config/sense/
+   mkdir -p ~/.config/sense
    pbpaste > ~/.config/sense/key
    git clone https://github.com/8ta4/sense
    cd sense
