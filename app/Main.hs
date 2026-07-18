@@ -113,7 +113,7 @@ makePayload config input =
         .= [ object
                [ "parts"
                    .= [ object
-                          ["text" .= input]
+                          ["text" .= ("Theme:\n" <> config.theme <> "\n\nPhrases:\n" <> config.benchmark <> "\n" <> input)]
                       ]
                ]
            ],
