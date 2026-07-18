@@ -133,6 +133,7 @@ makePayload config input =
                   "propertyOrdering" .= [fromText config.benchmark, fromText input],
                   "type" .= ("object" :: Text)
                 ],
+            "temperature" .= (0.0 :: Double),
             "thinkingConfig"
               .= object
                 ["thinkingLevel" .= ("MINIMAL" :: Text)]
