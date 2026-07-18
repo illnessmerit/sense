@@ -79,13 +79,14 @@ main = do
                                   [ "requests"
                                       .= object
                                         [ "requests"
-                                            .= ( ( \candidate ->
+                                            .= ( ( \target ->
                                                      [ object
                                                          [ "request"
-                                                             .= makePayload config candidate.entry
+                                                             .= makePayload config target
                                                          ]
                                                      ]
                                                  )
+                                                   <$> (.entry)
                                                    <$> Vector.take batchLimit candidates
                                                )
                                         ]
@@ -107,13 +108,13 @@ loadApiKeyHeader = do
   pure $ header "x-goog-api-key" apiKey
 
 makePayload :: Config -> Text -> Value
-makePayload config input =
+makePayload config target =
   object
     [ "contents"
         .= [ object
                [ "parts"
                    .= [ object
-                          ["text" .= ("Theme:\n" <> config.theme <> "\n\nPhrases:\n" <> config.benchmark <> "\n" <> input)]
+                          ["text" .= ("Theme:\n" <> config.theme <> "\n\nPhrases:\n" <> config.benchmark <> "\n" <> target)]
                       ]
                ]
            ],
@@ -123,14 +124,16 @@ makePayload config input =
             "responseMimeType" .= ("application/json" :: Text),
             "responseJsonSchema"
               .= object
-                [ "properties"
+                [ "additionalProperties" .= False,
+                  "properties"
                     .= object
                       [ fromText config.benchmark
                           .= percentageSchema,
-                        fromText input
+                        fromText target
                           .= percentageSchema
                       ],
-                  "propertyOrdering" .= [fromText config.benchmark, fromText input],
+                  "propertyOrdering" .= [fromText config.benchmark, fromText target],
+                  "required" .= [fromText config.benchmark, fromText target],
                   "type" .= ("object" :: Text)
                 ],
             "seed" .= (0 :: Int),
