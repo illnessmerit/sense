@@ -2,7 +2,7 @@ module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens.Fold (folding, (^..), (^?))
-import Data.Aeson (decodeStrict)
+import Data.Aeson (decodeStrict, encodeFile)
 import Data.Aeson.Key (fromText)
 import Data.Aeson.KeyMap (KeyMap, keys)
 import Data.Aeson.KeyMap qualified as KeyMap
@@ -64,10 +64,10 @@ main = do
           let batchIdPath = statePath </> "id"
           apiKeyHeader <- loadApiKeyHeader
           batchExists <- doesFileExist batchIdPath
+          let cacheFile = statePath </> "cache.json"
           progress <-
             if batchExists
               then do
-                let cacheFile = statePath </> "cache.json"
                 cacheExists <- doesFileExist cacheFile
                 cache <-
                   if cacheExists
@@ -81,6 +81,7 @@ main = do
                 results <- poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
                 pure $ cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (/= fromText config.benchmark)) <$> keys) &&& id) <$> results)
               else pure KeyMap.empty
+          encodeFile cacheFile progress
           let candidates =
                 Vector.filter
                   ( \row ->
