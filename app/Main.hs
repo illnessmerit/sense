@@ -98,8 +98,8 @@ main = do
                         eligibleRows
                 if Vector.null remainingRows
                   then do
-                    removeFile batchIdPath
                     renameFile cacheFile $ (takeBaseName file) <> ".json"
+                    removeFile batchIdPath
                   else runReq defaultHttpConfig $ do
                     response <-
                       req
