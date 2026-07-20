@@ -62,7 +62,6 @@ main = do
           putTextLn "YAML file parsed successfully"
           print config
           let batchIdPath = statePath </> "id"
-          batchExists <- doesFileExist batchIdPath
           let cacheFile = statePath </> "cache.json"
           apiKeyHeader <- loadApiKeyHeader
           let eligibleRows =
@@ -72,6 +71,7 @@ main = do
                   )
                   rows
           let loop = do
+                batchExists <- doesFileExist batchIdPath
                 progress <-
                   if batchExists
                     then do
