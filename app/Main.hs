@@ -82,52 +82,53 @@ main = do
                 pure $ cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (fromText config.benchmark /=)) <$> keys) &&& id) <$> results)
               else pure KeyMap.empty
           encodeFile cacheFile progress
-          let candidates =
+          let eligibleRows =
                 Vector.filter
                   ( \row ->
                       row.prevalence >= 50 && row.lemma && config.benchmark /= row.entry
                   )
                   rows
-          runReq defaultHttpConfig $ do
-            response <-
-              req
-                POST
-                batchUrl
-                ( ReqBodyJson
-                    $ object
-                      [ "batch"
-                          .= object
-                            [ "input_config"
-                                .= object
-                                  [ "requests"
-                                      .= object
-                                        [ "requests"
-                                            .= ( ( \target ->
-                                                     object
-                                                       [ "request"
-                                                           .= makePayload config target
-                                                       ]
+          let remainingRows =
+                Vector.filter
+                  ( \row ->
+                      not $ KeyMap.member (fromText row.entry) progress
+                  )
+                  eligibleRows
+          if Vector.null remainingRows
+            then pure ()
+            else runReq defaultHttpConfig $ do
+              response <-
+                req
+                  POST
+                  batchUrl
+                  ( ReqBodyJson
+                      $ object
+                        [ "batch"
+                            .= object
+                              [ "input_config"
+                                  .= object
+                                    [ "requests"
+                                        .= object
+                                          [ "requests"
+                                              .= ( ( \target ->
+                                                       object
+                                                         [ "request"
+                                                             .= makePayload config target
+                                                         ]
+                                                   )
+                                                     <$> (.entry)
+                                                     <$> Vector.take batchLimit remainingRows
                                                  )
-                                                   <$> (.entry)
-                                                   <$> Vector.take
-                                                     batchLimit
-                                                     ( Vector.filter
-                                                         ( \row ->
-                                                             not $ KeyMap.member (fromText row.entry) progress
-                                                         )
-                                                         candidates
-                                                     )
-                                               )
-                                        ]
-                                  ]
-                            ]
-                      ]
-                )
-                jsonResponse
-                apiKeyHeader
-            case (responseBody response :: Value) ^? key "name" . _String of
-              Just name -> writeFileText batchIdPath $ (splitOn "/" name) !! 1
-              Nothing -> pure ()
+                                          ]
+                                    ]
+                              ]
+                        ]
+                  )
+                  jsonResponse
+                  apiKeyHeader
+              case (responseBody response :: Value) ^? key "name" . _String of
+                Just name -> writeFileText batchIdPath $ (splitOn "/" name) !! 1
+                Nothing -> pure ()
     Left _ -> pure ()
 
 loadApiKeyHeader :: IO (Option 'Https)
