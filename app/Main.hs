@@ -86,9 +86,10 @@ main = do
                           else pure KeyMap.empty
                       batchId <- readFileBS batchIdPath
                       results <- poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
-                      pure $ cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (fromText config.benchmark /=)) <$> keys) &&& id) <$> results)
+                      let progress' = cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (fromText config.benchmark /=)) <$> keys) &&& id) <$> results)
+                      encodeFile cacheFile progress'
+                      pure progress'
                     else pure KeyMap.empty
-                encodeFile cacheFile progress
                 let remainingRows =
                       Vector.filter
                         ( \row ->
