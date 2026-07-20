@@ -79,7 +79,7 @@ main = do
                     else pure KeyMap.empty
                 batchId <- readFileBS batchIdPath
                 results <- poll $ req GET (baseUrl /: "batches" /: decodeUtf8 batchId) NoReqBody jsonResponse apiKeyHeader
-                pure $ cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (/= fromText config.benchmark)) <$> keys) &&& id) <$> results)
+                pure $ cache <> (KeyMap.fromList $ (((!! 0) <$> (filter (fromText config.benchmark /=)) <$> keys) &&& id) <$> results)
               else pure KeyMap.empty
           encodeFile cacheFile progress
           let candidates =
