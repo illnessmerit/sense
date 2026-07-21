@@ -236,7 +236,7 @@ percentageSchema =
     ]
 
 systemPrompt :: Text
-systemPrompt = "Estimate the percentage of Americans 10 years or older who know each phrase's meaning that fits the theme."
+systemPrompt = "Estimate the percentage of Americans 10 years or older who would understand a joke connecting the phrase to the theme."
 
 poll :: Req (JsonResponse Value) -> IO [KeyMap Value]
 poll request = runReq defaultHttpConfig $ do
