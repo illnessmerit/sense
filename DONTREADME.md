@@ -4,13 +4,13 @@
 
 ### Rating
 
-> Does `sense` use human feedback to rate associations?
+> Does `sense` use human feedback to score connections?
 
 No.
 
 Getting human feedback takes too much time.
 
-Instead, `sense` leans on a large language model (LLM) to rate associations.
+Instead, `sense` leans on a large language model (LLM) to score connections.
 
 ### Coverage
 
@@ -88,9 +88,9 @@ Yes.
 
 "[When seed is fixed to a specific value, the model makes a best effort to provide the same response for repeated requests.](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/content-generation-parameters#seed)"
 
-> What's the temperature `sense` uses for rating associations?
+> What's the temperature `sense` uses for scoring connections?
 
-`sense` runs at a temperature of 0 for rating associations. The whole point is to get the model to tap into its knowledge and spit out its best estimate.
+`sense` runs at a temperature of 0 for scoring connections. The whole point is to get the model to tap into its knowledge and spit out its best estimate.
 
 > What thinking level does `sense` use?
 
@@ -124,7 +124,7 @@ The benchmark phrase gets scored first.
 
 Scoring the benchmark phrase first makes sure it's evaluated before the target phrase's score is generated. This way, the benchmark phrase's context stays more alike across requests compared to using the reverse order.
 
-> Are the association scores normalized across multiple requests?
+> Are the connection scores normalized across multiple requests?
 
 Yes.
 
