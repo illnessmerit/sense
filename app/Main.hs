@@ -5,10 +5,11 @@ import Control.Lens (Ixed (ix), traversed)
 import Control.Lens.Fold (folding, (^..), (^?))
 import Data.Aeson (decodeStrict, encodeFile)
 import Data.Aeson.Key (fromText)
-import Data.Aeson.KeyMap (KeyMap, keys)
+import Data.Aeson.Key qualified as Key
+import Data.Aeson.KeyMap (KeyMap, delete, keys)
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Aeson.Lens (key, values, _Number, _Object, _String)
-import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
+import Data.Csv (DecodeOptions (decDelimiter), EncodeOptions (encDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, defaultEncodeOptions, encodeWith, parseNamedRecord, (.:))
 import Data.Text (splitOn)
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
@@ -143,15 +144,29 @@ main = do
           eitherOutputJson <- decodeFileEither outputJsonFile
           case eitherOutputJson of
             Right (outputJson :: KeyMap Value) -> do
-              let scores =
+              let responses =
                     filter
-                      ( \scores' ->
-                          fromMaybe False $ and <$> ((0 <) &&& (< 100)) <$> (scores' ^? ix (fromText config.benchmark) . _Number)
+                      ( \response ->
+                          fromMaybe False $ and <$> ((0 <) &&& (< 100)) <$> (response ^? ix (fromText config.benchmark) . _Number)
                       )
                       $ outputJson
                       ^.. traversed . _Object
-              let benchmarkMean = (sum $ scores ^.. traversed . ix (fromText config.benchmark) . _Number) / fromIntegral (length scores)
-              pure ()
+              let meanBenchmarkScore = (sum $ responses ^.. traversed . ix (fromText config.benchmark) . _Number) / fromIntegral (length responses)
+              writeFileLBS ((takeBaseName file) <> ".tsv")
+                $ encodeWith (defaultEncodeOptions {encDelimiter = 9})
+                $ mapMaybe
+                  ( \response -> do
+                      rawBenchmarkScore <- response ^? ix (fromText config.benchmark) . _Number
+                      (targetKey, targetScore') <- listToMaybe $ KeyMap.toList $ delete (fromText config.benchmark) response
+                      targetScore <- targetScore' ^? _Number
+                      pure
+                        ( Key.toText targetKey,
+                          if rawBenchmarkScore < targetScore
+                            then 100 - ((100 - targetScore) * (100 - meanBenchmarkScore) / (100 - rawBenchmarkScore))
+                            else targetScore * meanBenchmarkScore / rawBenchmarkScore
+                        )
+                  )
+                  responses
             Left _ -> pure ()
     Left _ -> pure ()
 
