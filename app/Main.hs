@@ -155,20 +155,23 @@ main = do
               -- If dividing two `Scientific` values results in a repeating decimal, it throws: "fromRational has been applied to a repeating decimal which can't be represented as a Scientific!".
               let meanBenchmarkScore = (sum $ responses ^.. traversed . ix (fromText config.benchmark) . _Double) / fromIntegral (length responses)
               writeFileLBS ((takeBaseName file) <> ".tsv")
-                $ encodeWith (defaultEncodeOptions {encDelimiter = 9})
-                $ mapMaybe
-                  ( \response -> do
-                      rawBenchmarkScore <- response ^? ix (fromText config.benchmark) . _Double
-                      (targetKey, targetScore') <- listToMaybe $ KeyMap.toList $ delete (fromText config.benchmark) response
-                      targetScore <- targetScore' ^? _Double
-                      pure
-                        ( Key.toText targetKey,
-                          if rawBenchmarkScore < targetScore
-                            then 100 - ((100 - targetScore) * (100 - meanBenchmarkScore) / (100 - rawBenchmarkScore))
-                            else targetScore * meanBenchmarkScore / rawBenchmarkScore
-                        )
+                $ "entry\tscore\n"
+                <> encodeWith
+                  defaultEncodeOptions {encDelimiter = 9}
+                  ( mapMaybe
+                      ( \response -> do
+                          rawBenchmarkScore <- response ^? ix (fromText config.benchmark) . _Double
+                          (targetKey, targetScore') <- listToMaybe $ KeyMap.toList $ delete (fromText config.benchmark) response
+                          targetScore <- targetScore' ^? _Double
+                          pure
+                            ( Key.toText targetKey,
+                              if rawBenchmarkScore < targetScore
+                                then 100 - ((100 - targetScore) * (100 - meanBenchmarkScore) / (100 - rawBenchmarkScore))
+                                else targetScore * meanBenchmarkScore / rawBenchmarkScore
+                            )
+                      )
+                      responses
                   )
-                  responses
             Left _ -> pure ()
     Left _ -> pure ()
 
