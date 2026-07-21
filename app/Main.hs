@@ -8,7 +8,7 @@ import Data.Aeson.Key (fromText)
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap (KeyMap, delete, keys)
 import Data.Aeson.KeyMap qualified as KeyMap
-import Data.Aeson.Lens (key, values, _Number, _Object, _String)
+import Data.Aeson.Lens (key, values, _Double, _Number, _Object, _String)
 import Data.Csv (DecodeOptions (decDelimiter), EncodeOptions (encDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, defaultEncodeOptions, encodeWith, parseNamedRecord, (.:))
 import Data.Text (splitOn)
 import Data.Vector (Vector)
@@ -151,14 +151,14 @@ main = do
                       )
                       $ outputJson
                       ^.. traversed . _Object
-              let meanBenchmarkScore = (sum $ responses ^.. traversed . ix (fromText config.benchmark) . _Number) / fromIntegral (length responses)
+              let meanBenchmarkScore = (sum $ responses ^.. traversed . ix (fromText config.benchmark) . _Double) / fromIntegral (length responses)
               writeFileLBS ((takeBaseName file) <> ".tsv")
                 $ encodeWith (defaultEncodeOptions {encDelimiter = 9})
                 $ mapMaybe
                   ( \response -> do
-                      rawBenchmarkScore <- response ^? ix (fromText config.benchmark) . _Number
+                      rawBenchmarkScore <- response ^? ix (fromText config.benchmark) . _Double
                       (targetKey, targetScore') <- listToMaybe $ KeyMap.toList $ delete (fromText config.benchmark) response
-                      targetScore <- targetScore' ^? _Number
+                      targetScore <- targetScore' ^? _Double
                       pure
                         ( Key.toText targetKey,
                           if rawBenchmarkScore < targetScore
