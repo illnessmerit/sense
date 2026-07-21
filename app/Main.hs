@@ -151,6 +151,8 @@ main = do
                       )
                       $ outputJson
                       ^.. traversed . _Object
+              -- We extract the score using `_Double` instead of `_Number` to safely perform division.
+              -- If dividing two `Scientific` values results in a repeating decimal, it throws: "fromRational has been applied to a repeating decimal which can't be represented as a Scientific!".
               let meanBenchmarkScore = (sum $ responses ^.. traversed . ix (fromText config.benchmark) . _Double) / fromIntegral (length responses)
               writeFileLBS ((takeBaseName file) <> ".tsv")
                 $ encodeWith (defaultEncodeOptions {encDelimiter = 9})
