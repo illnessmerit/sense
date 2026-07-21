@@ -1,11 +1,11 @@
 module Main where
 
 import Control.Concurrent (threadDelay)
-import Control.Lens (traversed)
+import Control.Lens (Ixed (ix), traversed)
 import Control.Lens.Fold (folding, (^..), (^?))
 import Data.Aeson (decodeStrict, encodeFile)
 import Data.Aeson.Key (fromText)
-import Data.Aeson.KeyMap (KeyMap, elems, keys)
+import Data.Aeson.KeyMap (KeyMap, keys)
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Aeson.Lens (key, values, _Number, _Object, _String)
 import Data.Csv (DecodeOptions (decDelimiter), FromNamedRecord, decodeByNameWith, defaultDecodeOptions, parseNamedRecord, (.:))
@@ -146,10 +146,11 @@ main = do
               let scores =
                     filter
                       ( \scores' ->
-                          fromMaybe False $ and <$> ((0 <) &&& (< 100)) <$> (scores' ^? key (fromText config.benchmark) . _Number)
+                          fromMaybe False $ and <$> ((0 <) &&& (< 100)) <$> (scores' ^? ix (fromText config.benchmark) . _Number)
                       )
-                      $ elems outputJson
-              let benchmarkMean = (sum $ scores ^.. traversed . key (fromText config.benchmark) . _Number) / fromIntegral (length scores)
+                      $ outputJson
+                      ^.. traversed . _Object
+              let benchmarkMean = (sum $ scores ^.. traversed . ix (fromText config.benchmark) . _Number) / fromIntegral (length scores)
               pure ()
             Left _ -> pure ()
     Left _ -> pure ()
